@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 #include <sys/sem.h>
 
-#define K 30
+#define K 5
 
 int get_access_semaphore();
 int get_semaphore_value(int id_sem, int sem_num);
@@ -16,30 +16,36 @@ void handle_semaphore_p(int id_sem, int sem_num);
 int main() {
     int id_sem = get_access_semaphore();
     int value = get_semaphore_value(id_sem, 0);
+    pid_t pid;
+
     printf("Wartość na semaforze: %d\n", value);
 
-
     for (int i = 0; i < K; i++) {
-        pid_t pid = fork();
-        handle_semaphore_p(id_sem, 0);
-        value = get_semaphore_value(id_sem, 0);
+        pid = fork(); // Dodać losowe tworzenie procesow z dzieckiem, VIP'ow
 
-        printf("Wartość na semaforze: %d\n", value);
+        switch (pid) {
+        case -1:
+            printf("Blad utworzenia nowego procesu!\n");
+            perror("fork");
+            exit(EXIT_FAILURE);    
+            break;
+        case 0:
+            printf("Kibic %d czeka na wejscie do kolejki!\n", getpid());
 
-        if (pid == 0) {
-            return 0; 
-        } else if (pid > 0) {
-            printf("Stworzyłem proces potomny o PID: %d\n", pid);
-        } else {
-            perror("fork failed");
-            return 1;
+            handle_semaphore_p(id_sem, 0);
+
+            printf("Kibic %d wszedł na stadion!\n", getpid());
+
+            exit(EXIT_SUCCESS);
+            break;
+        default:
+            break;
         }
     }
 
-    for (int i = 0; i < K; i++ ) {
+    for (int i = 0; i < K; i++) {
         wait(NULL);
     }
-
 
     return 0;
 }
@@ -78,7 +84,7 @@ void handle_semaphore_p(int id_sem, int sem_num) {
     sem_bufor.sem_flg = 0;
 
     if (semop(id_sem, &sem_bufor, 1) == -1) {
-        perror("Błąd operacji P na semaforze");
+        perror("Blad operacji P na semaforze");
         exit(EXIT_FAILURE);
     }
 }
@@ -87,11 +93,6 @@ int get_semaphore_value(int id_sem, int sem_num) {
     int return_value = 300;
 
     return_value = semctl(id_sem, sem_num, GETVAL);
-    
-    // if (return_value == -1) {
-    //     printf("Blad ustawiania wartosci semafora.\n");
-    //     exit(EXIT_FAILURE);
-    // }
 
     return return_value;
 }
