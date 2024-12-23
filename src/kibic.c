@@ -7,8 +7,9 @@
 #include <sys/sem.h>
 #include <pthread.h>
 #include <time.h>
+#include <math.h>
 
-#define K 5
+#define K 20
 
 typedef struct _Data_thread {
     int running;
@@ -27,13 +28,19 @@ void * calculate_time(void * _data);
 
 int main() {
     int id_sem = get_access_semaphore();
-    int value = get_semaphore_value(id_sem, 0);
+    // int value = get_semaphore_value(id_sem, 0);
+    double p = 0.005;
     pid_t pid;
 
-    printf("Wartość na semaforze: %d\n", value);
+    int probability = round(K / round(p * K)); // prawdopodobienstwo stworzenia procesu VIP (K >= 200)
+    //printf("Wartość na semaforze: %d\n", value);
 
     for (int i = 0; i < K; i++) {
         pid = fork(); // Dodać losowe tworzenie procesow z dzieckiem, VIP'ow
+        
+        // if (i % probability == 0) {
+        //     printf("Proces VIP");
+        // }
 
         switch (pid) {
         case -1:
