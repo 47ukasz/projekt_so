@@ -1,25 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/errno.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/sem.h>
-#include <pthread.h>
-#include <time.h>
-#include <math.h>
-
-#define K 20
-
-typedef struct _Data_thread {
-    int running;
-    long int working_time;
-} Data_thread; 
-
-int get_access_semaphore();
-int get_semaphore_value(int id_sem, int sem_num);
-void handle_semaphore_v(int id_sem, int sem_num);
-void handle_semaphore_p(int id_sem, int sem_num);
+#include <kibic.h>
+#include <semafory.h>
+#include <pamiec_dzielona.h>   
 
 void create_new_thread(pthread_t * thread_id, Data_thread * data);
 void join_thread(pthread_t thread_id);
@@ -28,14 +9,21 @@ void * calculate_time(void * _data);
 
 int main() {
     int id_sem = get_access_semaphore();
-    // int value = get_semaphore_value(id_sem, 0);
+    int id_shared = get_shared_memory();
+    char * address = join_shared_memory(id_shared);
+
+    int fanNumber;
     double p = 0.005;
     pid_t pid;
 
-    int probability = round(K / round(p * K)); // prawdopodobienstwo stworzenia procesu VIP (K >= 200)
-    //printf("Wartość na semaforze: %d\n", value);
+    handle_semaphore_p(id_sem, 1);
+    fanNumber = * address;
+    handle_semaphore_v(id_sem, 1);
 
-    for (int i = 0; i < K; i++) {
+
+    int probability = round(fanNumber / round(p * fanNumber)); // prawdopodobienstwo stworzenia procesu VIP (K >= 200)
+
+    for (int i = 0; i < fanNumber; i++) {
         pid = fork(); // Dodać losowe tworzenie procesow z dzieckiem, VIP'ow
         
         // if (i % probability == 0) {
@@ -66,7 +54,7 @@ int main() {
 
             join_thread(thread_id);
 
-            printf("Czas dzialania programu (PID=%d): %ld", getpid(), data.working_time);            
+            printf("Czas dzialania programu (PID=%d): %ld\n", getpid(), data.working_time);            
 
             detach_thread(thread_id);
 
@@ -78,58 +66,13 @@ int main() {
         }
     }
 
-    for (int i = 0; i < K; i++) {
+    for (int i = 0; i < fanNumber; i++) {
         wait(NULL);
     }
 
+    detach_shared_memory(address);
+
     return 0;
-}
-
-int get_access_semaphore() {
-    int id_sem = semget(47, 1, 0666);
-
-    if (id_sem == -1) {
-        printf("Nie mozna uzyskac dostepu do semafora.\n");
-        exit(EXIT_FAILURE);
-    } 
-
-    return id_sem;
-}
-
-void handle_semaphore_v(int id_sem, int sem_num) {
-    int return_value;
-    struct sembuf sem_bufor;
-    sem_bufor.sem_num = sem_num;
-    sem_bufor.sem_op = 1;
-    sem_bufor.sem_flg = SEM_UNDO;
-
-    return_value = semop(id_sem, &sem_bufor, 1);
-
-    if (return_value == -1) {
-        printf("Blad otwarcia semafora.\n");
-        exit(EXIT_FAILURE);
-    }
-}
-
-void handle_semaphore_p(int id_sem, int sem_num) {
-    int return_value;
-    struct sembuf sem_bufor;
-    sem_bufor.sem_num = sem_num;
-    sem_bufor.sem_op = -1;
-    sem_bufor.sem_flg = 0;
-
-    if (semop(id_sem, &sem_bufor, 1) == -1) {
-        perror("Blad operacji P na semaforze");
-        exit(EXIT_FAILURE);
-    }
-}
-
-int get_semaphore_value(int id_sem, int sem_num) {
-    int return_value = 300;
-
-    return_value = semctl(id_sem, sem_num, GETVAL);
-
-    return return_value;
 }
 
 void create_new_thread(pthread_t * thread_id, Data_thread * data) {

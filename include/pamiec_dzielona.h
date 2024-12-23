@@ -4,7 +4,7 @@
 int create_new_shared_memory();
 int get_shared_memory();
 char * join_shared_memory(int id_shared);
-void detach_shared_memory(int id_shared, char * address);
+void detach_shared_memory(char * address);
 
 #endif
 

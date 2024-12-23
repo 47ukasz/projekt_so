@@ -1,16 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/sem.h>
-
-int create_new_semaphore();
-void set_semaphore(int id_sem, int sem_num, int value);
-void handle_semaphore_v(int id_sem, int sem_num);
-void handle_semaphore_p(int id_sem, int sem_num);
-void delete_semaphore(int id_sem);
+#include <pracownik_techniczny.h>
+#include <semafory.h>
+#include <pamiec_dzielona.h>
+#include <unistd.h>
 
 int main() {
+    int id_sem = create_new_semaphore();
+    int id_shm = create_new_shared_memory();
+    char * address = join_shared_memory(id_shm);
     int K;
 
     printf("Podaj liczbe kibicow majacych wejsc na stadion: ");
@@ -21,45 +17,19 @@ int main() {
         return 1;
     }
 
-    int id_sem = create_new_semaphore();
     set_semaphore(id_sem, 0, K);
+    set_semaphore(id_sem, 1, 1);
+
+    handle_semaphore_p(id_sem, 1);
+    * address = K;
+    handle_semaphore_v(id_sem, 1);
+
+
+    detach_shared_memory(address);
+
+    while(1) {
+        sleep(1);
+    }
 
     return 0;
-}
-
-int create_new_semaphore() {
-    int id_sem = semget(47, 1, 0666|IPC_CREAT);
-
-    if (id_sem == -1) {
-        printf("Blad utworzenia nowego semafora.\n");
-        exit(EXIT_FAILURE);
-    } else {
-        printf("Semafor zostal utworzony : %d\n", id_sem);
-    }
-
-    return id_sem;
-}
-
-void set_semaphore(int id_sem, int sem_num, int value) {
-    int return_value = 0;
-
-    return_value = semctl(id_sem, sem_num, SETVAL, value);
-    
-    if (return_value == -1) {
-        printf("Blad ustawiania wartosci semafora.\n");
-        exit(EXIT_FAILURE);
-    }
-}
-
-void delete_semaphore(int id_sem) {
-    int return_value;
-
-    return_value = semctl(id_sem, 0, IPC_RMID);
-
-    if (return_value == -1) {
-        printf("Blad usuniecia semafora.\n");
-        exit(EXIT_FAILURE);
-    } else {
-        printf("Semafor zostal usuniety: %d\n", id_sem);
-    }
 }
