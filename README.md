@@ -1,11 +1,11 @@
 PROJEKT SYSTEMY OPERACYJNE
 
-TEMAT 11 - STADION
+TEMAT 11 - STADION  
 
-Struktura plików:
+Struktura plików:  
 
-\nbin/ # Pliki binarne
-\nsrc/ # Pliki źródłowe
-\ninclude/ # Pliki nagłówkowe
-\nscripts/ # Skrypty .sh
-\nobj/ # Pliki obiektowe
+bin/ # Pliki binarne  
+src/ # Pliki źródłowe  
+include/ # Pliki nagłówkowe  
+scripts/ # Skrypty .sh  
+obj/ # Pliki obiektowe  
