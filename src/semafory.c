@@ -54,21 +54,6 @@ int get_access_semaphore() {
     return id_sem;
 }
 
-// void handle_semaphore_v(int id_sem, int sem_num) {
-//     int return_value;
-//     struct sembuf sem_bufor;
-//     sem_bufor.sem_num = sem_num;
-//     sem_bufor.sem_op = 1;
-//     sem_bufor.sem_flg = SEM_UNDO;
-
-//     return_value = semop(id_sem, &sem_bufor, 1);
-
-//     if (return_value == -1) {
-//         printf("Blad otwarcia semafora.\n");
-//         exit(EXIT_FAILURE);
-//     }
-// }
-
 void handle_semaphore_v(int id_sem, int sem_num) {
     int return_value;
     struct sembuf sem_bufor;
@@ -79,10 +64,8 @@ void handle_semaphore_v(int id_sem, int sem_num) {
     return_value = semop(id_sem, &sem_bufor, 1);
 
     if (return_value == -1) {
-        perror("Blad otwarcia semafora");
+        printf("Blad otwarcia semafora.\n");
         exit(EXIT_FAILURE);
-    } else {
-        printf("Semafor podniesiony pomyslnie.\n");
     }
 }
 
@@ -107,4 +90,34 @@ int get_semaphore_value(int id_sem, int sem_num) {
     return_value = semctl(id_sem, sem_num, GETVAL);
 
     return return_value;
+}
+
+void PN(int id_sem, int sem_num, int value) {
+    int return_value;
+    struct sembuf sem_bufor;
+    sem_bufor.sem_num = sem_num;
+    sem_bufor.sem_op = -value;
+    sem_bufor.sem_flg = 0;
+
+    return_value = semop(id_sem, &sem_bufor, 1);
+
+    if (return_value == -1) {
+        perror("Blad operacji P na semaforze");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void VN(int id_sem, int sem_num, int value) {
+    int return_value;
+    struct sembuf sem_bufor;
+    sem_bufor.sem_num = sem_num;
+    sem_bufor.sem_op = value;
+    sem_bufor.sem_flg = 0;
+
+    return_value = semop(id_sem, &sem_bufor, 1);
+
+    if (return_value == -1) {
+        perror("Blad operacji V na semaforze");
+        exit(EXIT_FAILURE);
+    }
 }

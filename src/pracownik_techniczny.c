@@ -24,12 +24,25 @@ int main() {
     * address = K;
     handle_semaphore_v(id_sem, 1);
 
+    pid_t pid = fork();
 
-    detach_shared_memory(address);
-
-    while(1) {
-        sleep(1);
+    switch(pid) {
+        case -1:
+            printf("Blad utworzenia nowego procesu!\n");
+            perror("fork");
+            exit(EXIT_FAILURE);
+            break;
+        case 0:
+            execl("./bin/kibic", "kibic", NULL);
+            break;
     }
 
+    wait(NULL);
+
+    printf("Kibic zakonczyl swoje dzialanie.\n");
+
+    detach_shared_memory(address);
+    delete_shared_memory(id_shm);
+    delete_semaphore(id_sem);
     return 0;
 }

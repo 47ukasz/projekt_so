@@ -10,25 +10,33 @@ void * calculate_time(void * _data);
 int main() {
     int id_sem = get_access_semaphore();
     int id_shared = get_shared_memory();
-    char * address = join_shared_memory(id_shared);
+    int * address = join_shared_memory(id_shared);
 
-    int fanNumber;
-    double p = 0.005;
+    int fan_type_global;
+    int fan_number;
+    double fan_vip_percentage = 0.005;
+    double fan_child_percentage = 0.15;
     pid_t pid;
 
     handle_semaphore_p(id_sem, 1);
-    fanNumber = * address;
+    fan_number = * address;
     handle_semaphore_v(id_sem, 1);
 
+    int probability_vip = round(fan_number / round(fan_vip_percentage * fan_number)); // prawdopodobienstwo stworzenia procesu VIP (K >= 200)
+    int probability_child = round(fan_number / round(fan_child_percentage * fan_number)); // prawdopodobienstwo stworzenia procesu z dzieckiem (K >= 200)
 
-    int probability = round(fanNumber / round(p * fanNumber)); // prawdopodobienstwo stworzenia procesu VIP (K >= 200)
+    printf("Tworzenie procesow kibicow...\n");
 
-    for (int i = 0; i < fanNumber; i++) {
-        pid = fork(); // Dodać losowe tworzenie procesow z dzieckiem, VIP'ow
+    for (int i = 0; i < fan_number; i++) {
+        pid = fork(); 
         
-        // if (i % probability == 0) {
-        //     printf("Proces VIP");
-        // }
+        if (i % probability_vip == 0) {
+            fan_type_global = VIP_FAN;
+        } else if (i % probability_child == 0) {
+            fan_type_global = NORMAL_WITH_CHILD;
+        } else {
+            fan_type_global = NORMAL_FAN;
+        }
 
         switch (pid) {
         case -1:
@@ -39,6 +47,15 @@ int main() {
         case 0: {
             pthread_t thread_id;
             Data_thread data;
+            int fan_type_local = fan_type_global;
+
+            if (fan_type_local == NORMAL_WITH_CHILD) {
+                printf("Kibic %d z dzieckiem\n", getpid());
+            } else if (fan_type_local == VIP_FAN) {
+                printf("Kibic VIP %d\n", getpid());
+            } else {
+                printf("Kibic (normalny) %d\n", getpid());
+            }
 
             data.running = 1;
 
@@ -49,7 +66,8 @@ int main() {
             handle_semaphore_p(id_sem, 0);
             printf("Kibic %d wszedł na stadion!\n", getpid());
 
-            sleep(5);
+            sleep(1);
+
             data.running = 0; // oznaczenia konca dzialania procesu
 
             join_thread(thread_id);
@@ -66,7 +84,7 @@ int main() {
         }
     }
 
-    for (int i = 0; i < fanNumber; i++) {
+    for (int i = 0; i < fan_number; i++) {
         wait(NULL);
     }
 

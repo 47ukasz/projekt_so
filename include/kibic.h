@@ -16,4 +16,10 @@ typedef struct _Data_thread {
     long int working_time;
 } Data_thread; 
 
+typedef enum {
+    NORMAL_FAN,
+    NORMAL_WITH_CHILD,    
+    VIP_FAN
+} Fan_type;
+
 #endif
