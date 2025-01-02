@@ -3,9 +3,10 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include "pamiec_dzielona.h"
 
 int create_new_shared_memory() {
-    int id_shared = shmget(48, 256, 0666|IPC_CREAT);
+    int id_shared = shmget(48, sizeof(SharedData), 0666|IPC_CREAT);
 
     if (id_shared == -1) {
         printf("Blad utworzenia pamieci wspoldzielonej.\n");
@@ -18,7 +19,7 @@ int create_new_shared_memory() {
 }
 
 int get_shared_memory() {
-    int id_shared = shmget(48, 256, 0666);
+    int id_shared = shmget(48, sizeof(SharedData), 0666);
 
     if (id_shared == -1) {
         printf("Blad dostepu do pamieci wspoldzielonej.\n");
@@ -30,20 +31,20 @@ int get_shared_memory() {
     return id_shared;
 }
 
-int * join_shared_memory(int id_shared) {
-    int * address = (int *)shmat(id_shared, NULL, 0);
+SharedData* join_shared_memory(int id_shared) {
+    SharedData* address = (SharedData*)shmat(id_shared, NULL, 0);
 
-    if (*address == -1) {
-        printf("Blad dolaczenia pamieci wspoldzielonej.\n");
+    if (address == -1) {
+        perror("Blad dolaczenia pamieci wspoldzielonej.\n");
         exit(EXIT_FAILURE);
     } else {
-        printf("Pamiec wspoldzielona zostala dolaczona : %d\n", *address);
+        printf("Pamiec wspoldzielona zostala dolaczona\n");
     }
-
+    
     return address;
 }
 
-void detach_shared_memory(int * address) {
+void detach_shared_memory(SharedData * address) {
     int return_value;
 
     return_value = shmdt(address);

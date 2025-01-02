@@ -30,11 +30,11 @@ $(BIN_DIR) $(OBJ_DIR):
 	@mkdir -p $@
 
 # Reguła budowania binarki kibic
-$(KIBIC_BIN): $(OBJ_DIR)/kibic.o $(OBJ_DIR)/pamiec_dzielona.o $(OBJ_DIR)/semafory.o
+$(KIBIC_BIN): $(OBJ_DIR)/kibic.o $(OBJ_DIR)/pamiec_dzielona.o $(OBJ_DIR)/semafory.o $(OBJ_DIR)/watki.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 # Reguła budowania binarki pracownik_techniczny
-$(PRACOWNIK_TECH_BIN): $(OBJ_DIR)/pracownik_techniczny.o $(OBJ_DIR)/pamiec_dzielona.o $(OBJ_DIR)/semafory.o
+$(PRACOWNIK_TECH_BIN): $(OBJ_DIR)/pracownik_techniczny.o $(OBJ_DIR)/pamiec_dzielona.o $(OBJ_DIR)/semafory.o $(OBJ_DIR)/watki.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 # Reguła kompilacji plików .c na .o z generowaniem zależności

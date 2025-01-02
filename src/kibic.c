@@ -1,16 +1,14 @@
-#include <kibic.h>
-#include <semafory.h>
-#include <pamiec_dzielona.h>   
+#include "kibic.h"
+#include "semafory.h"
+#include "pamiec_dzielona.h"   
+#include "watki.h"
 
-void create_new_thread(pthread_t * thread_id, Data_thread * data);
-void join_thread(pthread_t thread_id);
-void detach_thread(pthread_t thread_id);
 void * calculate_time(void * _data);
 
 int main() {
     int id_sem = get_access_semaphore();
     int id_shared = get_shared_memory();
-    int * address = join_shared_memory(id_shared);
+    SharedData * shared_data = join_shared_memory(id_shared);
 
     int fan_type_global;
     int fan_number;
@@ -19,7 +17,7 @@ int main() {
     pid_t pid;
 
     handle_semaphore_p(id_sem, 1);
-    fan_number = * address;
+    fan_number = shared_data->K;
     handle_semaphore_v(id_sem, 1);
 
     int probability_vip = round(fan_number / round(fan_vip_percentage * fan_number)); // prawdopodobienstwo stworzenia procesu VIP (K >= 200)
@@ -45,36 +43,38 @@ int main() {
             exit(EXIT_FAILURE);    
             break;
         case 0: {
-            pthread_t thread_id;
+            srand(time(NULL) ^ getpid());
+            pthread_t thread_id_time, thread_id_child;
             Data_thread data;
             int fan_type_local = fan_type_global;
+            int team = rand() % 2;
 
             if (fan_type_local == NORMAL_WITH_CHILD) {
-                printf("Kibic %d z dzieckiem\n", getpid());
-            } else if (fan_type_local == VIP_FAN) {
-                printf("Kibic VIP %d\n", getpid());
-            } else {
-                printf("Kibic (normalny) %d\n", getpid());
+                create_new_thread(&thread_id_child, child_handler, NULL);
             }
 
             data.running = 1;
 
-            create_new_thread(&thread_id, &data);
+            create_new_thread(&thread_id_time, calculate_time, (void *) &data);
 
-            printf("Kibic %d czeka na wejscie do kolejki!\n", getpid());
-
-            handle_semaphore_p(id_sem, 0);
-            printf("Kibic %d wszedł na stadion!\n", getpid());
-
-            sleep(1);
-
+            handle_semaphore_p(id_sem, 0); // ustawienie w kolejce
+            
+            printf("Kibic (PID=%d) wchodzi na stadion\n", getpid());
+            printf("Kibic (PID=%d) wychodzi ze stadionu\n", getpid());
+            if (fan_type_local == NORMAL_WITH_CHILD) {
+                join_thread(thread_id_child);
+            }
+            
             data.running = 0; // oznaczenia konca dzialania procesu
+            join_thread(thread_id_time);
 
-            join_thread(thread_id);
+            printf("Czas dzialania programu (PID=%d): %ld\n", getpid(), (long)data.working_time);            
 
-            printf("Czas dzialania programu (PID=%d): %ld\n", getpid(), data.working_time);            
+            detach_thread(thread_id_time);
 
-            detach_thread(thread_id);
+            if (fan_type_local == NORMAL_WITH_CHILD) {
+                detach_thread(thread_id_child);
+            }
 
             exit(EXIT_SUCCESS);
             break;
@@ -88,60 +88,7 @@ int main() {
         wait(NULL);
     }
 
-    detach_shared_memory(address);
+    detach_shared_memory(shared_data);
 
     return 0;
-}
-
-void create_new_thread(pthread_t * thread_id, Data_thread * data) {
-    int return_value;
-
-    return_value = pthread_create(thread_id, NULL, calculate_time, (void *)data);
-
-    if (return_value == -1) {
-        printf("Blad utworzenia nowego watku!\n");
-        perror("blad - watek (utworzenie)");
-        exit(EXIT_FAILURE);
-    }
-}
-
-void * calculate_time(void * _data) {
-    Data_thread * data = (Data_thread *)_data;
-    time_t start_time;
-    time_t end_time;
-
-    time(&start_time);
-
-    while (data->running) {
-        time(&end_time);
-        sleep(1);        
-    }
-
-    data->working_time = end_time - start_time;
-
-    pthread_exit(0);
-}
-
-void join_thread(pthread_t thread_id) {
-    int return_value;
-
-    return_value = pthread_join(thread_id, NULL);
-
-    if (return_value == -1) {
-        printf("Blad dolaczania watku!\n");
-        perror("blad - watek (dolaczenie)");
-        exit(EXIT_FAILURE);
-    }
-}
-
-void detach_thread(pthread_t thread_id) {
-    int return_value;
-
-    return_value = pthread_detach(thread_id);
-
-    if (return_value == -1) {
-        printf("Blad odolaczania (usuwania) watku!\n");
-        perror("blad - watek (odlaczanie)");
-        exit(EXIT_FAILURE);
-    }
 }
