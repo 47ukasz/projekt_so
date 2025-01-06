@@ -6,7 +6,7 @@
 #include "pamiec_dzielona.h"
 
 int create_new_shared_memory() {
-    int id_shared = shmget(48, sizeof(SharedData), 0666|IPC_CREAT);
+    int id_shared = shmget(48, sizeof(Shared_data), 0666|IPC_CREAT);
 
     if (id_shared == -1) {
         printf("Blad utworzenia pamieci wspoldzielonej.\n");
@@ -19,7 +19,7 @@ int create_new_shared_memory() {
 }
 
 int get_shared_memory() {
-    int id_shared = shmget(48, sizeof(SharedData), 0666);
+    int id_shared = shmget(48, sizeof(Shared_data), 0666);
 
     if (id_shared == -1) {
         printf("Blad dostepu do pamieci wspoldzielonej.\n");
@@ -31,8 +31,8 @@ int get_shared_memory() {
     return id_shared;
 }
 
-SharedData* join_shared_memory(int id_shared) {
-    SharedData* address = (SharedData*)shmat(id_shared, NULL, 0);
+Shared_data* join_shared_memory(int id_shared) {
+    Shared_data* address = (Shared_data*)shmat(id_shared, NULL, 0);
 
     if (address == -1) {
         perror("Blad dolaczenia pamieci wspoldzielonej.\n");
@@ -44,7 +44,7 @@ SharedData* join_shared_memory(int id_shared) {
     return address;
 }
 
-void detach_shared_memory(SharedData * address) {
+void detach_shared_memory(Shared_data * address) {
     int return_value;
 
     return_value = shmdt(address);

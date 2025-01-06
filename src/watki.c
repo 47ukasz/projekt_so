@@ -47,8 +47,8 @@ void * child_handler(void * data) {
 
 void * calculate_time(void * _data) {
     Data_thread * data = (Data_thread *)_data;
-    time_t start_time;
-    time_t end_time = 10;
+    time_t start_time = 0;
+    time_t end_time = 0;
 
     time(&start_time);
 

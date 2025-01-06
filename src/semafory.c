@@ -59,7 +59,7 @@ void handle_semaphore_v(int id_sem, int sem_num) {
     struct sembuf sem_bufor;
     sem_bufor.sem_num = sem_num;
     sem_bufor.sem_op = 1;
-    sem_bufor.sem_flg = SEM_UNDO;
+    sem_bufor.sem_flg = 0;
 
     return_value = semop(id_sem, &sem_bufor, 1);
 
