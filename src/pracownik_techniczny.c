@@ -23,6 +23,8 @@ int main() {
     set_semaphore(id_sem, 2, 3);
     set_semaphore(id_sem, 3, 3);
     set_semaphore(id_sem, 4, 3);
+    set_semaphore(id_sem, 5, K); // sekcja krytyczna dla procesow czytajacych (kibicow bez prio) | r
+    set_semaphore(id_sem, 6, K); // sekcja krytyczna dla procesow piszacych (kibicow z prio) | w
 
     handle_semaphore_p(id_sem, 1);
     

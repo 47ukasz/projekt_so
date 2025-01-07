@@ -5,7 +5,7 @@
 #include <sys/sem.h>
 
 int create_new_semaphore() {
-    int id_sem = semget(47, 5, 0666|IPC_CREAT);
+    int id_sem = semget(47, 7, 0666|IPC_CREAT);
 
     if (id_sem == -1) {
         printf("Blad utworzenia nowego semafora.\n");
@@ -42,7 +42,7 @@ void delete_semaphore(int id_sem) {
 }
 
 int get_access_semaphore() {
-    int id_sem = semget(47, 5, 0666);
+    int id_sem = semget(47, 7, 0666);
 
     if (id_sem == -1) {
         printf("Nie mozna uzyskac dostepu do semafora.\n");
@@ -92,7 +92,7 @@ int get_semaphore_value(int id_sem, int sem_num) {
     return return_value;
 }
 
-void PN(int id_sem, int sem_num, int value) {
+void handle_semaphore_pn(int id_sem, int sem_num, int value) {
     int return_value;
     struct sembuf sem_bufor;
     sem_bufor.sem_num = sem_num;
@@ -107,7 +107,7 @@ void PN(int id_sem, int sem_num, int value) {
     }
 }
 
-void VN(int id_sem, int sem_num, int value) {
+void handle_semaphore_vn(int id_sem, int sem_num, int value) {
     int return_value;
     struct sembuf sem_bufor;
     sem_bufor.sem_num = sem_num;

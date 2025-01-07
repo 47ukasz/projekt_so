@@ -13,11 +13,14 @@
 
 typedef enum {
     NORMAL_FAN,
+    NORMAL_FAN_PRIORITY,
     NORMAL_WITH_CHILD,    
     VIP_FAN
 } Fan_type;
 
 // void handle_gate_control(int id_sem, int id_team);
-void handle_gate_control(int id_sem, int id_team, Shared_data * data);
+void handle_gate_control(int id_sem, int id_team, Shared_data * data, int fan_type);
+void handle_normal_fan(int id_sem, int id_team, Shared_data * data, int K, int fan_type);
+void handle_priority_fan(int id_sem, int id_team, Shared_data * data, int K, int fan_type);
 
 #endif
