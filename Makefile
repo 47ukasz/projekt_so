@@ -20,20 +20,25 @@ DEP_FILES = $(OBJ_FILES:.o=.d)
 # Binarki
 KIBIC_BIN = $(BIN_DIR)/kibic
 PRACOWNIK_TECH_BIN = $(BIN_DIR)/pracownik_techniczny
+KIEROWNIK_BIN = $(BIN_DIR)/kierownik
 
 # Cel domyślny
-all: $(BIN_DIR) $(OBJ_DIR) $(KIBIC_BIN) $(PRACOWNIK_TECH_BIN)
+all: $(BIN_DIR) $(OBJ_DIR) $(KIBIC_BIN) $(PRACOWNIK_TECH_BIN) $(KIEROWNIK_BIN)
 
 # Tworzenie folderów bin i obj, jeśli nie istnieją
 $(BIN_DIR) $(OBJ_DIR):
 	@mkdir -p $@
 
 # Reguła budowania binarki kibic
-$(KIBIC_BIN): $(OBJ_DIR)/kibic.o $(OBJ_DIR)/pamiec_dzielona.o $(OBJ_DIR)/semafory.o $(OBJ_DIR)/watki.o
+$(KIBIC_BIN): $(OBJ_DIR)/kibic.o $(OBJ_DIR)/pamiec_dzielona.o $(OBJ_DIR)/semafory.o $(OBJ_DIR)/watki.o $(OBJ_DIR)/kolejka_komunikatow.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 # Reguła budowania binarki pracownik_techniczny
-$(PRACOWNIK_TECH_BIN): $(OBJ_DIR)/pracownik_techniczny.o $(OBJ_DIR)/pamiec_dzielona.o $(OBJ_DIR)/semafory.o $(OBJ_DIR)/watki.o
+$(PRACOWNIK_TECH_BIN): $(OBJ_DIR)/pracownik_techniczny.o $(OBJ_DIR)/pamiec_dzielona.o $(OBJ_DIR)/semafory.o $(OBJ_DIR)/watki.o $(OBJ_DIR)/kolejka_komunikatow.o
+	$(CC) $(CFLAGS) -o $@ $^
+
+# Reguła budowania binarki kierownik
+$(KIEROWNIK_BIN): $(OBJ_DIR)/kierownik.o $(OBJ_DIR)/pamiec_dzielona.o $(OBJ_DIR)/semafory.o $(OBJ_DIR)/watki.o $(OBJ_DIR)/kolejka_komunikatow.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 # Reguła kompilacji plików .c na .o z generowaniem zależności
@@ -47,12 +52,15 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 clean:
 	rm -rf $(BIN_DIR) $(OBJ_DIR)
 
-# Cel uruchamiania binarek
+# Cele uruchamiania binarek
 run_k: $(KIBIC_BIN)
 	./$(KIBIC_BIN)
 
 run_pt: $(PRACOWNIK_TECH_BIN)
 	./$(PRACOWNIK_TECH_BIN)
 
-# Cel phony - zapobiega konfliktom z plikami o takich nazwach
-.PHONY: all clean run_k run_pt
+run_ki: $(KIEROWNIK_BIN)
+	./$(KIEROWNIK_BIN)
+
+# Cele phony - zapobiega konfliktom z plikami o takich nazwach
+.PHONY: all clean run_k run_pt run_ki

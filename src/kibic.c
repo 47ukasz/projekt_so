@@ -5,10 +5,10 @@
 
 int main() {
     int id_sem = get_access_semaphore();
-    int id_shared = get_shared_memory();
-    Shared_data * shared_data = join_shared_memory(id_shared);
-
+    int id_shared = get_shared_memory(48, sizeof(Shared_data_fan));
+    Shared_data_fan * shared_data = join_shared_memory_fan(id_shared);
     int fan_number;
+
     double fan_vip_percentage = 0.005;
     double fan_child_percentage = 0.15;
     pid_t pid;
@@ -19,6 +19,8 @@ int main() {
 
     int probability_vip = round(fan_number / round(fan_vip_percentage * fan_number)); // prawdopodobienstwo stworzenia procesu VIP (K >= 200)
     int probability_child = round(fan_number / round(fan_child_percentage * fan_number)); // prawdopodobienstwo stworzenia procesu z dzieckiem (K >= 200)
+
+    sleep(5);
 
     for (int i = 0; i < fan_number; i++) {
         pid = fork(); 
@@ -59,14 +61,24 @@ int main() {
             create_new_thread(&thread_id_time, calculate_time, (void *) &data);
 
             handle_semaphore_p(id_sem, 0); // ustawienie w kolejce
+            
+            sleep(rand() % 5 + 2);
+
+            handle_semaphore_p(id_sem, 9);
 
             if (fan_type == NORMAL_FAN || fan_type == NORMAL_WITH_CHILD) {
                 handle_normal_fan(id_sem, team, shared_data, fan_number, fan_type);
-            } else if (fan_type == NORMAL_FAN_PRIORITY){
+            } else if (fan_type == NORMAL_FAN_PRIORITY) {
                 handle_priority_fan(id_sem, team, shared_data, fan_number, fan_type);
-            } else {
-                handle_semaphore_v(id_sem, 0); // VIP wchodzi na stadion;
             }
+
+            if (fan_type == VIP_FAN) {
+                handle_semaphore_p(id_sem, 10);
+            } else {
+                handle_semaphore_p(id_sem, 8);
+            }
+
+            printf("Kibic %d wychodzi ze stadionu\n", getpid());
 
             data.running = 0; // oznaczenia konca dzialania procesu
             join_thread(thread_id_time);
@@ -83,8 +95,6 @@ int main() {
                 detach_thread(thread_id_child);
             }
             
-            handle_semaphore_v(id_sem, 0);
-
             exit(EXIT_SUCCESS);
             break;
         }
@@ -97,13 +107,13 @@ int main() {
         wait(NULL);
     }
 
-    detach_shared_memory(shared_data);
+    detach_shared_memory_fan(shared_data);
     printf("Kibic zakonczyl swoje dzialanie.\n");
 
     return 0;
 }
 
-void handle_gate_control(int id_sem, int id_team, Shared_data * data, int fan_type) {
+void handle_gate_control(int id_sem, int id_team, Shared_data_fan * data, int fan_type) {
     int id_gate = -1;
 
     while (id_gate == -1) {
@@ -143,13 +153,10 @@ void handle_gate_control(int id_sem, int id_team, Shared_data * data, int fan_ty
     } else {
         handle_semaphore_p(id_sem, id_gate + 2);
     }
-        
-    // handle_semaphore_p(id_sem, id_gate + 2);
 
     printf("Kibic (PID=%d) przechodzi kontrole bezpieczenstwa na bramce %d\n", getpid(), id_gate);    
-    sleep(2);
+    sleep(rand() % 3 + 1);
 
-    // handle_semaphore_v(id_sem, id_gate + 2);
     if (fan_type == NORMAL_WITH_CHILD) {
         handle_semaphore_vn(id_sem, id_gate + 2, 2); // uwzglednienie dziekca przy wyjsciu
     } else {
@@ -176,7 +183,7 @@ void handle_gate_control(int id_sem, int id_team, Shared_data * data, int fan_ty
 }
 
 // 5 => r | 6 => w
-void handle_normal_fan(int id_sem, int id_team, Shared_data * data, int K, int fan_type) {
+void handle_normal_fan(int id_sem, int id_team, Shared_data_fan * data, int K, int fan_type) {
     printf("Kibic czeka dla normalnych | PID: %d | Druzyna: %d\n", getpid(), id_team);
     handle_semaphore_pn(id_sem, 5, K);
     handle_semaphore_pn(id_sem, 6, 1);
@@ -190,7 +197,7 @@ void handle_normal_fan(int id_sem, int id_team, Shared_data * data, int K, int f
     handle_semaphore_vn(id_sem, 6, 1);
 }
 
-void handle_priority_fan(int id_sem, int id_team, Shared_data * data, int K, int fan_type) {
+void handle_priority_fan(int id_sem, int id_team, Shared_data_fan * data, int K, int fan_type) {
     printf("Kibic czeka dla vip | PID: %d | Druzyna: %d\n", getpid(), id_team);
     handle_semaphore_pn(id_sem, 5, 1);
     handle_semaphore_pn(id_sem, 6, K);
