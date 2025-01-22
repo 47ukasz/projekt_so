@@ -13,5 +13,6 @@
 void handle_pause_signal(int signal);
 void handle_resume_signal(int signal);
 void handle_exit_signal(int signal);
+void handle_user_input(int * ptr);
 
 #endif

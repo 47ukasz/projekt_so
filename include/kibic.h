@@ -9,6 +9,7 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <math.h>
+#include <signal.h>
 #include "pamiec_dzielona.h"
 
 typedef enum {
@@ -18,8 +19,15 @@ typedef enum {
     VIP_FAN
 } Fan_type;
 
-void handle_gate_control(int id_sem, int id_team, Shared_data_fan * data, int fan_type);
-void handle_normal_fan(int id_sem, int id_team, Shared_data_fan * data, int K, int fan_type);
-void handle_priority_fan(int id_sem, int id_team, Shared_data_fan * data, int K, int fan_type);
+typedef struct _Fan {
+    int fan_pid;
+    int fan_team;
+    int fan_type;
+    int is_dangerous;
+} Fan;
+
+void handle_normal_fan(int id_sem, Shared_data_fan * data, Fan * fan_data, int K);
+void handle_priority_fan(int id_sem, Shared_data_fan * data, Fan * fan_data, int K);
+void handle_gate_control(int id_sem, Shared_data_fan * data, Fan * fan_data);
 
 #endif

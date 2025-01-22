@@ -10,5 +10,6 @@ void handle_semaphore_vn(int id_sem, int sem_num, int value);
 void delete_semaphore(int id_sem);
 int get_access_semaphore();
 int get_semaphore_value(int id_sem, int sem_num);
+int get_process_waiting_before_p(int id_sem, int sem_num);
 
 #endif

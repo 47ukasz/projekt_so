@@ -23,7 +23,7 @@ int main() {
         printf("3 - rozkaz opuszczenia stadionu wszystkim kibicom\n");
         printf("4 - KONIEC\n");
 
-        scanf("%d", &option);
+        handle_user_input(&option);
 
         switch (option) {
             case 1: 
@@ -35,7 +35,8 @@ int main() {
             case 3:
                 kill(employee_pid, SIGINT);
                 receive_message(id_queue, &data_message, MANAGER);
-                printf("%s\n", data_message.mtext); 
+                printf("%s\n", data_message.mtext);
+                exit(EXIT_SUCCESS);
                 break;
             case 4:
                 break;
@@ -48,4 +49,15 @@ int main() {
     detach_shared_memory_manager(shared_data_manager);
 
     return 0;
+}
+
+void handle_user_input(int * ptr) {
+    int return_value = 1;
+
+    return_value = scanf("%d", ptr);
+
+    if (return_value == 0) {
+        perror("Podana wartość jest w złym formacie");
+        exit(EXIT_FAILURE);
+    }
 }

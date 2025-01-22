@@ -39,14 +39,14 @@ void detach_thread(pthread_t thread_id) {
     }
 }
 
-void * child_handler(void * data) {
+void * child_handler(void * _data) {
     printf("Kibic %d z dzieckiem\n", getpid());
 
     pthread_exit(0);
 }
 
 void * calculate_time(void * _data) {
-    Data_thread * data = (Data_thread *)_data;
+    Data_time_thread * data = (Data_time_thread *)_data;
     time_t start_time = 0;
     time_t end_time = 0;
 
@@ -60,4 +60,28 @@ void * calculate_time(void * _data) {
     data->working_time = end_time - start_time;
 
     pthread_exit(0);
+}
+
+void * handle_wait(void * _data) {
+    int status;
+    pid_t pid;
+
+    while (1) {
+        pid = waitpid(-1, &status, WNOHANG);
+
+        if (pid == -1) {
+            if (errno == ECHILD) {
+                break;
+            } else {
+                perror("waitpid");
+                break; 
+            }
+        } else if (pid == 0) {
+            usleep(200);
+        } else {
+            printf("Kibic (PID=%d) kończy swoje działanie\n", pid);
+        }  
+    }
+
+    return NULL;
 }

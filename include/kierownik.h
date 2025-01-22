@@ -7,4 +7,6 @@
 #include "semafory.h"
 #include "pamiec_dzielona.h"
 
+void handle_user_input(int * ptr);
+
 #endif
