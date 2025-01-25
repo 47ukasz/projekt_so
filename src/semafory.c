@@ -69,7 +69,11 @@ void handle_semaphore_p(int id_sem, int sem_num) {
     sem_bufor.sem_op  = -1; // P
     sem_bufor.sem_flg = 0;
 
-    if (semop(id_sem, &sem_bufor, 1) == -1) {
+    int return_value;
+
+    while ((return_value = semop(id_sem, &sem_bufor, 1)) == -1 && errno == EINTR);
+
+    if (return_value == -1) {
         perror("Blad operacji P na semaforze (semop)");
         exit(EXIT_FAILURE);
     }

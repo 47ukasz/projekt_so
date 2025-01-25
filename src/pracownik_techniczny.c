@@ -80,12 +80,22 @@ int main() {
             break;
     }
 
-    wait(NULL);
+    if (wait(NULL) == -1) {
+        detach_shared_memory_fan(shared_data_fan);
+        delete_shared_memory(id_shm_fan);
+        delete_shared_memory(id_shm_manager);
+        delete_semaphore(id_sem);
+        delete_message_queue(id_queue);
+        
+        perror("Blad zakonczenia glownego kibica");
+        exit(EXIT_FAILURE);
+    }
 
     detach_shared_memory_fan(shared_data_fan);
     delete_shared_memory(id_shm_fan);
     delete_shared_memory(id_shm_manager);
     delete_semaphore(id_sem);
+    delete_message_queue(id_queue);
     return 0;
 }
 
@@ -106,7 +116,9 @@ void handle_exit_signal(int signal) {
     int waiting_before_queue;
 
     data_message.mtype = MANAGER;
-    strcpy(data_message.mtext, "Wszyscy kibice opuscili stadion.");
+    strncpy(data_message.mtext, "Wszyscy kibice opuscili stadion.", sizeof(data_message.mtext) - 1);
+
+    data_message.mtext[sizeof(data_message.mtext) - 1] = '\0';
 
     printf("Otrzymano sygnal: %d, Rozpoczeto opuszczanie stadionu przez kibicow.\n", signal);
 

@@ -41,6 +41,9 @@ int main() {
             fan_data.fan_pid = getpid();
             fan_data.fan_team = rand() % 2; 
             fan_data.is_dangerous = (i % 100 == 0) ? 1 : 0;
+            // fan_data.is_dangerous = 1;
+
+            // fan_data.fan_type = VIP_FAN;
 
             if (i % probability_vip == 0) {
                 fan_data.fan_type = VIP_FAN;
@@ -50,7 +53,7 @@ int main() {
                 fan_data.fan_type = NORMAL_FAN;
             }
 
-            if (i % 20 == 0) {
+            if (i % 2 == 0) {
                 fan_data.fan_type = NORMAL_FAN_PRIORITY;
             }
 
@@ -73,8 +76,7 @@ int main() {
             handle_semaphore_p(id_sem, 1);
 
             if (shared_data->match_ended) {
-                printf("Liczba procesow czekajacych na opuszczenie sem: %d\n", get_process_waiting_before_p(id_sem, 0));
-                printf("Kibic (PID=%d) wychodzi przed stadionu.\n", fan_data.fan_pid);
+                printf("Kibic (PID=%d) opuszczar obszar przed stadionem\n", fan_data.fan_pid);
                 handle_semaphore_v(id_sem,1);
                 exit(EXIT_SUCCESS);
                 break;
@@ -83,8 +85,6 @@ int main() {
             }
 
             handle_semaphore_v(id_sem, 1);
-
-            printf("Kibic w kolejce\n");
 
             handle_semaphore_p(id_sem, 9);
 
@@ -95,7 +95,7 @@ int main() {
             }
 
             if (fan_data.is_dangerous) {
-                printf("Kibic %d jest niebezpieczny i nie moze wejsc na stadion\n", fan_data.fan_pid);
+                printf("Kibic (PID=%d) jest niebezpieczny i nie moze wejsc na stadion\n", fan_data.fan_pid);
                 thread_time_data.running = 0; // oznaczenia konca dzialania procesu
                 join_thread(thread_id_time);
             
@@ -127,7 +127,7 @@ int main() {
                 handle_semaphore_p(id_sem, 8);
             }
 
-            printf("Kibic %d wychodzi ze stadionu\n", fan_data.fan_pid);
+            printf("Kibic (PID=%d) wychodzi ze stadionu\n", fan_data.fan_pid);
 
             thread_time_data.running = 0; // oznaczenia konca dzialania procesu
             join_thread(thread_id_time);
@@ -167,9 +167,7 @@ int main() {
 
     }
 
-    printf("Poza whilem\n");
     join_thread(thread_id_wait);
-    printf("Po waitcie\n");
     detach_thread(thread_id_wait);
     detach_shared_memory_fan(shared_data);
     printf("Kibic zakonczyl swoje dzialanie.\n");
@@ -210,7 +208,7 @@ void handle_gate_control(int id_sem, Shared_data_fan * data, Fan * fan_data) {
 
     }
 
-    printf("Kibic %d wybral bramke | Bramka: %d | Druzyna %d | Liczba osob na bramce: %d | Bramka zajeta przez: %d\n", fan_data->fan_pid, id_gate, fan_data->fan_team, data->gateCount[id_gate], data->gateTeam[id_gate]);
+    printf("Kibic (PID=%d) wybral bramke | Bramka: %d | Druzyna %d | Liczba osob na bramce: %d | Bramka zajeta przez: %d\n", fan_data->fan_pid, id_gate, fan_data->fan_team, data->gateCount[id_gate], data->gateTeam[id_gate]);
 
     if (fan_data->fan_type == NORMAL_WITH_CHILD) {
         handle_semaphore_pn(id_sem, id_gate + 2, 2); // uwzglednienie dziecka przy wejsciu
@@ -249,7 +247,9 @@ void handle_gate_control(int id_sem, Shared_data_fan * data, Fan * fan_data) {
 
     handle_semaphore_v(id_sem, 1);
 
-    printf("Kibic %d wchodzi na stadion | Bramka: %d | Druzyna %d | Liczba osob na bramce: %d | wartosc sem1: %d \n", getpid(), id_gate, fan_data->fan_team, data->gateCount[id_gate], get_semaphore_value(id_sem, 1));
+    if (!fan_data->is_dangerous) {
+        printf("Kibic (PID=%d) wchodzi na stadion | Bramka: %d | Druzyna %d | Liczba osob na bramce: %d\n", getpid(), id_gate, fan_data->fan_team, data->gateCount[id_gate]);
+    }
 }
 
 // 5 => r | 6 => w
